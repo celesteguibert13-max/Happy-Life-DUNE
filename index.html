@@ -282,7 +282,7 @@ function defaultEvents(){
 let heroIdx=0;
 function initHero(){
   const el=document.getElementById('hero-bg');
-  el.style.backgroundImage=`url(${IMGS[HERO_IMGS[0]]})`;
+  el.style.backgroundImage=`url('${IMGS[HERO_IMGS[0]]}')`;
   const dots=document.getElementById('hero-dots');
   dots.innerHTML=HERO_IMGS.map((_,i)=>`<div class="hdot${i===0?' on':''}" onclick="goHero(${i})"></div>`).join('');
   setInterval(()=>goHero((heroIdx+1)%HERO_IMGS.length),5000);
@@ -290,7 +290,7 @@ function initHero(){
 function goHero(i){
   const el=document.getElementById('hero-bg');
   el.classList.add('fade');
-  setTimeout(()=>{el.style.backgroundImage=`url(${IMGS[HERO_IMGS[i]]})`;el.classList.remove('fade');},500);
+  setTimeout(()=>{el.style.backgroundImage=`url('${IMGS[HERO_IMGS[i]]}')`;el.classList.remove('fade');},500);
   heroIdx=i;
   document.querySelectorAll('.hdot').forEach((d,j)=>d.classList.toggle('on',j===i));
 }
@@ -322,7 +322,7 @@ function renderGrid(){
     const cnt=(ev.participants||0)+(joined?1:0);
     const src=IMGS[ev.img]||IMGS.hero;
     return `<div class="card ${ev.cat}${past?' past':''}">
-      <div class="card-img" style="background-image:url(${src})">
+      <div class="card-img" style="background-image:url('${src}')">
         <div class="card-img-ov"></div>
         <span class="cat-pill">${CAT[ev.cat]}</span>
       </div>
@@ -344,7 +344,7 @@ function renderGrid(){
 }
 
 function renderGal(){
-  document.getElementById('gal').innerHTML=GAL_IMGS.map(k=>`<div class="gal-img" style="background-image:url(${IMGS[k]})"></div>`).join('');
+  document.getElementById('gal').innerHTML=GAL_IMGS.map(k=>`<div class="gal-img" style="background-image:url('${IMGS[k]}')"></div>`).join('');
 }
 
 function renderIdeas(){
