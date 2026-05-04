@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUNE World — Happy Life 🌊</title>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0d2136;
+  --navy2: #162d42;
+  --teal: #0a9e9e;
+  --teal-dark: #077a7a;
+  --teal-light: #e0f7f7;
+  --sand: #faf7f2;
+  --sand2: #f2ede4;
+  --coral: #ff6b4a;
+  --coral-light: #fff2ef;
+  --yellow: #ffc93c;
+  --yellow-light: #fff9e6;
+  --purple: #7c5cbf;
+  --purple-light: #f0ebff;
+  --green: #2ea87e;
+  --green-light: #e6f9f3;
+  --white: #ffffff;
+  --text: #1a2a35;
+  --text-muted: #5a7080;
+  --text-light: #8fa3af;
+  --border: #e2ddd6;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 12px rgba(13,33,54,.07);
+  --shadow-md: 0 6px 28px rgba(13,33,54,.11);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--text); min-height: 100vh; }
+h1,h2,h3 { font-family: 'Cabinet Grotesk', sans-serif; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--navy);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--teal);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px; font-weight: 800; color: white;
+}
+.logo-name { font-family: 'Cabinet Grotesk', sans-serif; font-size: 17px; font-weight: 700; color: white; }
+.logo-tag { font-size: 12px; color: rgba(255,255,255,.4); margin-left: 2px; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.admin-btn {
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px;
+  font-size: 12px; font-weight: 500;
+  color: rgba(255,255,255,.6);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+}
+.admin-btn:hover { border-color: var(--teal); color: var(--teal); }
+.admin-btn.active { background: var(--teal); color: white; border-color: var(--teal); }
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 60%, #0d3a4a 100%);
+  padding: 3rem 2rem 2.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(10,158,158,.15) 0%, transparent 70%);
+}
+.hero-emoji { font-size: 42px; margin-bottom: 12px; }
+.hero h1 { font-size: 36px; font-weight: 800; color: white; margin-bottom: 8px; position: relative; }
+.hero p { font-size: 16px; color: rgba(255,255,255,.6); position: relative; max-width: 440px; margin: 0 auto; line-height: 1.6; }
+
+/* ── NEXT EVENT BANNER ── */
+.next-banner {
+  background: var(--teal);
+  padding: 14px 2rem;
+  display: flex; align-items: center; gap: 12px;
+  overflow: hidden;
+}
+.next-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.7); white-space: nowrap; }
+.next-content { font-size: 14px; font-weight: 600; color: white; }
+.next-date { font-size: 13px; color: rgba(255,255,255,.75); margin-left: auto; white-space: nowrap; }
+
+/* ── MAIN ── */
+.main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+/* ── FILTERS ── */
+.filter-row { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.ftag {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  background: white;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+}
+.ftag:hover { border-color: var(--teal); color: var(--teal); }
+.ftag.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+/* ── EVENT GRID ── */
+.events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 2rem; }
+
+.event-card {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform .2s, box-shadow .2s;
+  cursor: default;
+}
+.event-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.event-card.past { opacity: .55; filter: grayscale(.4); }
+
+.event-color-bar { height: 6px; }
+.event-body { padding: 1.1rem 1.2rem; }
+.event-cat {
+  display: inline-block;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px;
+  margin-bottom: 10px;
+}
+.event-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 4px; line-height: 1.2; }
+.event-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
+.event-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.meta-pill {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--text-muted);
+  background: var(--sand);
+  padding: 4px 10px; border-radius: 20px;
+}
+.event-footer { display: flex; align-items: center; justify-content: space-between; }
+.parti-count { font-size: 12px; color: var(--text-light); }
+.parti-count strong { color: var(--teal); font-size: 14px; }
+.join-btn {
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+}
+.join-btn:hover { transform: scale(1.04); }
+.join-btn.joined { background: var(--green-light); color: var(--green); }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 3rem; color: var(--text-muted); }
+.empty-emoji { font-size: 40px; margin-bottom: 10px; }
+
+/* ── IDEAS SECTION ── */
+.ideas-section { background: white; border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 2rem; }
+.ideas-section h2 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+.ideas-section .sub { font-size: 13px; color: var(--text-muted); margin-bottom: 1.2rem; }
+.idea-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.idea-input {
+  flex: 1; min-width: 200px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; color: var(--text);
+  outline: none; transition: border-color .15s;
+  background: var(--sand);
+}
+.idea-input:focus { border-color: var(--teal); background: white; }
+.idea-name { width: 150px; flex: none; }
+.idea-submit {
+  padding: 10px 20px;
+  background: var(--teal);
+  color: white; border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.idea-submit:hover { background: var(--teal-dark); }
+
+.ideas-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 8px; }
+.idea-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--sand);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.idea-text { flex: 1; font-size: 14px; color: var(--text); }
+.idea-by { font-size: 12px; color: var(--text-light); }
+.idea-vote {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  background: white;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+}
+.idea-vote:hover { border-color: var(--coral); color: var(--coral); }
+.idea-vote.voted { background: var(--coral-light); color: var(--coral); border-color: var(--coral); }
+.idea-delete { background: none; border: none; cursor: pointer; font-size: 14px; opacity: .4; transition: opacity .15s; }
+.idea-delete:hover { opacity: 1; }
+
+/* ── ADMIN PANEL ── */
+.admin-panel {
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-md);
+}
+.admin-panel h2 { font-size: 20px; font-weight: 800; color: white; margin-bottom: 4px; }
+.admin-panel .sub { font-size: 13px; color: rgba(255,255,255,.5); margin-bottom: 1.25rem; }
+.admin-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.admin-form .full { grid-column: 1 / -1; }
+.af-label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 5px; }
+.af-input {
+  width: 100%; padding: 10px 12px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; color: white;
+  outline: none; transition: border-color .15s;
+}
+.af-input::placeholder { color: rgba(255,255,255,.3); }
+.af-input:focus { border-color: var(--teal); }
+.af-input option { background: var(--navy2); color: white; }
+.add-btn {
+  width: 100%; padding: 12px;
+  background: var(--teal);
+  color: white; border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: background .15s;
+  margin-top: 4px;
+}
+.add-btn:hover { background: var(--teal-dark); }
+
+.admin-events { margin-top: 1.5rem; }
+.admin-events h3 { font-size: 15px; font-weight: 600; color: rgba(255,255,255,.7); margin-bottom: 10px; }
+.admin-event-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.07);
+  border-radius: var(--radius-sm);
+  margin-bottom: 7px;
+}
+.ae-title { flex: 1; font-size: 13px; color: white; }
+.ae-date { font-size: 12px; color: rgba(255,255,255,.45); }
+.ae-del {
+  padding: 4px 10px;
+  background: rgba(255,100,74,.2);
+  color: #ff8060;
+  border: 1px solid rgba(255,100,74,.3);
+  border-radius: 6px;
+  font-size: 11px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+}
+.ae-del:hover { background: rgba(255,100,74,.35); }
+
+.admin-ideas { margin-top: 1.5rem; }
+.admin-ideas h3 { font-size: 15px; font-weight: 600; color: rgba(255,255,255,.7); margin-bottom: 10px; }
+.ai-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.07);
+  border-radius: var(--radius-sm);
+  margin-bottom: 7px;
+}
+.ai-text { flex: 1; font-size: 13px; color: white; }
+.ai-by { font-size: 12px; color: rgba(255,255,255,.4); }
+.ai-votes { font-size: 12px; color: var(--yellow); }
+.ai-promote {
+  padding: 4px 10px;
+  background: rgba(10,158,158,.25);
+  color: var(--teal);
+  border: 1px solid rgba(10,158,158,.3);
+  border-radius: 6px;
+  font-size: 11px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+}
+.ai-promote:hover { background: rgba(10,158,158,.4); }
+
+/* ── PASSWORD MODAL ── */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(13,33,54,.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; display: none;
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: white;
+  border-radius: var(--radius);
+  padding: 2rem;
+  width: 340px;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+.modal h3 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+.modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 1.2rem; }
+.modal input {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px; text-align: center;
+  letter-spacing: .2em;
+  font-family: 'DM Sans', sans-serif;
+  outline: none; margin-bottom: 10px;
+}
+.modal input:focus { border-color: var(--teal); }
+.modal-submit {
+  width: 100%; padding: 11px;
+  background: var(--navy);
+  color: white; border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: background .15s;
+}
+.modal-submit:hover { background: var(--teal-dark); }
+.modal-error { font-size: 12px; color: var(--coral); margin-top: 6px; display: none; }
+.modal-cancel { margin-top: 10px; font-size: 12px; color: var(--text-muted); cursor: pointer; }
+.modal-cancel:hover { color: var(--text); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 2rem; right: 2rem;
+  background: var(--navy);
+  color: white;
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500;
+  box-shadow: var(--shadow-md);
+  transform: translateY(60px); opacity: 0;
+  transition: all .3s cubic-bezier(.34,1.56,.64,1);
+  z-index: 300;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* COLORS per category */
+.cat-festif .event-color-bar { background: var(--yellow); }
+.cat-festif .event-cat { background: var(--yellow-light); color: #a07800; }
+.cat-festif .join-btn { background: var(--yellow); color: var(--navy); }
+.cat-bien-etre .event-color-bar { background: var(--green); }
+.cat-bien-etre .event-cat { background: var(--green-light); color: var(--green); }
+.cat-bien-etre .join-btn { background: var(--green); color: white; }
+.cat-foodie .event-color-bar { background: var(--coral); }
+.cat-foodie .event-cat { background: var(--coral-light); color: #c0401a; }
+.cat-foodie .join-btn { background: var(--coral); color: white; }
+.cat-culture .event-color-bar { background: var(--purple); }
+.cat-culture .event-cat { background: var(--purple-light); color: var(--purple); }
+.cat-culture .join-btn { background: var(--purple); color: white; }
+.cat-plongee .event-color-bar { background: var(--teal); }
+.cat-plongee .event-cat { background: var(--teal-light); color: var(--teal-dark); }
+.cat-plongee .join-btn { background: var(--teal); color: white; }
+.cat-surprise .event-color-bar { background: var(--navy); }
+.cat-surprise .event-cat { background: #eef2f5; color: var(--navy); }
+.cat-surprise .join-btn { background: var(--navy); color: white; }
+
+@media (max-width: 600px) {
+  .header { padding: 0 1rem; }
+  .hero { padding: 2rem 1rem 1.5rem; }
+  .hero h1 { font-size: 26px; }
+  .main { padding: 1rem; }
+  .events-grid { grid-template-columns: 1fr; }
+  .admin-form { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">DW</div>
+    <span class="logo-name">DUNE World</span>
+    <span class="logo-tag">Happy Life</span>
+  </div>
+  <div class="header-right">
+    <button class="admin-btn" id="admin-toggle" onclick="toggleAdmin()">⚙ Admin</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-emoji">🌊</div>
+  <h1>Happy Life DUNE</h1>
+  <p>Tous les événements de votre équipe, au même endroit. Bonne humeur garantie.</p>
+</div>
+
+<!-- NEXT EVENT BANNER -->
+<div class="next-banner" id="next-banner" style="display:none">
+  <span class="next-label">Prochain événement</span>
+  <span class="next-content" id="next-content"></span>
+  <span class="next-date" id="next-date"></span>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ADMIN PANEL -->
+  <div id="admin-panel" style="display:none">
+    <div class="admin-panel">
+      <h2>✏️ Gestion des événements</h2>
+      <p class="sub">Ajoute, modifie ou supprime les événements visibles par l'équipe</p>
+
+      <div class="admin-form">
+        <div class="full">
+          <label class="af-label">Titre de l'événement</label>
+          <input class="af-input" id="af-titre" placeholder="ex : Fête de la Musique 🎵">
+        </div>
+        <div>
+          <label class="af-label">Catégorie</label>
+          <select class="af-input" id="af-cat">
+            <option value="festif">🎉 Festif</option>
+            <option value="foodie">🍕 Foodie</option>
+            <option value="bien-etre">🧘 Bien-être</option>
+            <option value="culture">🎨 Culture</option>
+            <option value="plongee">🤿 Plongée</option>
+            <option value="surprise">✨ Surprise</option>
+          </select>
+        </div>
+        <div>
+          <label class="af-label">Date</label>
+          <input class="af-input" id="af-date" type="date">
+        </div>
+        <div>
+          <label class="af-label">Heure (optionnel)</label>
+          <input class="af-input" id="af-heure" type="time" placeholder="12:30">
+        </div>
+        <div>
+          <label class="af-label">Lieu (optionnel)</label>
+          <input class="af-input" id="af-lieu" placeholder="ex : Rooftop, Salle de réunion...">
+        </div>
+        <div class="full">
+          <label class="af-label">Description courte</label>
+          <input class="af-input" id="af-desc" placeholder="ex : On sort les guitares et on chante tous ensemble !">
+        </div>
+        <div class="full">
+          <button class="add-btn" onclick="ajouterEvent()">+ Ajouter l'événement</button>
+        </div>
+      </div>
+
+      <div class="admin-events" id="admin-events-list"></div>
+      <div class="admin-ideas" id="admin-ideas-list"></div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filter-row" id="filter-row">
+    <button class="ftag active" onclick="setFilter('tous',this)">Tous</button>
+    <button class="ftag" onclick="setFilter('festif',this)">🎉 Festif</button>
+    <button class="ftag" onclick="setFilter('foodie',this)">🍕 Foodie</button>
+    <button class="ftag" onclick="setFilter('bien-etre',this)">🧘 Bien-être</button>
+    <button class="ftag" onclick="setFilter('culture',this)">🎨 Culture</button>
+    <button class="ftag" onclick="setFilter('plongee',this)">🤿 Plongée</button>
+    <button class="ftag" onclick="setFilter('surprise',this)">✨ Surprise</button>
+  </div>
+
+  <!-- EVENTS GRID -->
+  <div class="events-grid" id="events-grid"></div>
+
+  <!-- IDEAS SECTION -->
+  <div class="ideas-section">
+    <h2>💡 Tes idées d'événements</h2>
+    <p class="sub">Propose une idée, vote pour celles que tu aimes — la happiness manager décide de la suite !</p>
+    <div class="idea-form">
+      <input class="idea-input idea-name" id="idea-nom" placeholder="Ton prénom">
+      <input class="idea-input" id="idea-text" placeholder="Mon idée : ex. quiz géant, blind test, pique-nique...">
+      <button class="idea-submit" onclick="ajouterIdee()">Proposer</button>
+    </div>
+    <div class="ideas-list" id="ideas-list"></div>
+  </div>
+
+</main>
+
+<!-- MODAL PASSWORD -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3>🔐 Accès Admin</h3>
+    <p>Entre le mot de passe happiness manager</p>
+    <input type="password" id="pwd-input" placeholder="••••••" onkeydown="if(event.key==='Enter')checkPwd()">
+    <button class="modal-submit" onclick="checkPwd()">Entrer</button>
+    <div class="modal-error" id="pwd-error">Mot de passe incorrect</div>
+    <div class="modal-cancel" onclick="closeModal()">Annuler</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ─────────────────────────────────────────────────
+// 👉 CHANGE CE MOT DE PASSE avant de mettre en ligne !
+const ADMIN_PASSWORD = 'dune2025';
+
+const CAT_LABELS = {
+  festif: '🎉 Festif',
+  foodie: '🍕 Foodie',
+  'bien-etre': '🧘 Bien-être',
+  culture: '🎨 Culture',
+  plongee: '🤿 Plongée',
+  surprise: '✨ Surprise'
+};
+
+// ─── STATE ──────────────────────────────────────────────────
+let events = [];
+let ideas  = [];
+let participations = {}; // {eventId: true/false}
+let votes = {};          // {ideaId: true/false}
+let isAdmin = false;
+let currentFilter = 'tous';
+
+// ─── STORAGE ────────────────────────────────────────────────
+function save() {
+  try {
+    localStorage.setItem('dw_happy_events', JSON.stringify(events));
+    localStorage.setItem('dw_happy_ideas',  JSON.stringify(ideas));
+    localStorage.setItem('dw_happy_parti',  JSON.stringify(participations));
+    localStorage.setItem('dw_happy_votes',  JSON.stringify(votes));
+  } catch(e) {}
+}
+function load() {
+  try {
+    events         = JSON.parse(localStorage.getItem('dw_happy_events') || 'null') || getDefaultEvents();
+    ideas          = JSON.parse(localStorage.getItem('dw_happy_ideas')  || '[]');
+    participations = JSON.parse(localStorage.getItem('dw_happy_parti')  || '{}');
+    votes          = JSON.parse(localStorage.getItem('dw_happy_votes')  || '{}');
+  } catch(e) {
+    events = getDefaultEvents(); ideas = []; participations = {}; votes = {};
+  }
+}
+
+function getDefaultEvents() {
+  const today = new Date();
+  const fmt = (d) => d.toISOString().split('T')[0];
+  const add = (n) => { const d = new Date(today); d.setDate(d.getDate()+n); return fmt(d); };
+  return [
+    { id: 1, titre: 'Livraison de fruits 🍓', cat: 'foodie', date: add(2), heure: '10:00', lieu: 'Cuisine', desc: 'Votre panier de fruits frais de la semaine vous attend !', participants: 12 },
+    { id: 2, titre: 'Fête de la Musique 🎵', cat: 'festif', date: add(7), heure: '18:30', lieu: 'Rooftop', desc: 'On sort les guitares, les baffles et on chante tous ensemble. BYOB !', participants: 8 },
+    { id: 3, titre: 'Apéro fête des voisins 🏘️', cat: 'festif', date: add(14), heure: '19:00', lieu: 'Salle commune', desc: 'Chacun ramène un truc à grignoter, on fait connaissance avec les voisins !', participants: 15 },
+    { id: 4, titre: 'On plonge avec nos mamans 🤿', cat: 'plongee', date: add(21), heure: '09:00', lieu: 'Piscine partenaire', desc: "Fête des mères version DUNE : on emmène nos mamans explorer le monde sous-marin !", participants: 6 },
+    { id: 5, titre: 'Cookies maison 🍪', cat: 'foodie', date: add(3), heure: '16:00', lieu: 'Cuisine', desc: 'Atelier cookies surprise. Chocolat, caramel, noix de coco… Venez pâtisser !', participants: 10 },
+    { id: 6, titre: 'Karaoké night 🎤', cat: 'culture', date: add(30), heure: '20:00', lieu: 'Bar le Jules', desc: 'La soirée la plus embarrassante et la plus fun de l\'année. Répertoire libre !', participants: 18 },
+  ];
+}
+
+// ─── RENDER ─────────────────────────────────────────────────
+function render() {
+  renderNextBanner();
+  renderGrid();
+  renderIdeas();
+  if (isAdmin) { renderAdminEvents(); renderAdminIdeas(); }
+}
+
+function renderNextBanner() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const upcoming = events.filter(e => new Date(e.date) >= today).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const banner = document.getElementById('next-banner');
+  if (!upcoming.length) { banner.style.display = 'none'; return; }
+  const next = upcoming[0];
+  banner.style.display = 'flex';
+  document.getElementById('next-content').textContent = next.titre;
+  document.getElementById('next-date').textContent = fmtDate(next.date) + (next.heure ? ' à ' + next.heure : '');
+}
+
+function renderGrid() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  let filtered = currentFilter === 'tous' ? events : events.filter(e => e.cat === currentFilter);
+  filtered = filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  const grid = document.getElementById('events-grid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-emoji">📭</div><p>Aucun événement dans cette catégorie</p></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(ev => {
+    const past = new Date(ev.date) < today;
+    const joined = participations[ev.id];
+    const count = (ev.participants || 0) + (joined ? 1 : 0);
+    return `<div class="event-card cat-${ev.cat}${past?' past':''}">
+      <div class="event-color-bar"></div>
+      <div class="event-body">
+        <span class="event-cat">${CAT_LABELS[ev.cat]}</span>
+        <div class="event-title">${ev.titre}</div>
+        <div class="event-desc">${ev.desc}</div>
+        <div class="event-meta">
+          <span class="meta-pill">📅 ${fmtDate(ev.date)}</span>
+          ${ev.heure ? `<span class="meta-pill">🕐 ${ev.heure}</span>` : ''}
+          ${ev.lieu  ? `<span class="meta-pill">📍 ${ev.lieu}</span>`  : ''}
+        </div>
+        <div class="event-footer">
+          <span class="parti-count"><strong>${count}</strong> participant${count>1?'s':''}</span>
+          ${!past ? `<button class="join-btn${joined?' joined':''}" onclick="toggleJoin(${ev.id})">
+            ${joined ? '✓ Je viens !' : 'Je participe'}
+          </button>` : '<span style="font-size:12px;color:var(--text-light)">Événement passé</span>'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderIdeas() {
+  const list = document.getElementById('ideas-list');
+  if (!ideas.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-light);padding:8px 0">Aucune idée pour l\'instant. Sois le premier ! 🙌</div>';
+    return;
+  }
+  const sorted = [...ideas].sort((a,b) => (b.votes||0)-(a.votes||0));
+  list.innerHTML = sorted.map(id => `
+    <div class="idea-item">
+      <span class="idea-text">${id.text}</span>
+      <span class="idea-by">— ${id.nom}</span>
+      <button class="idea-vote${votes[id.id]?' voted':''}" onclick="voteIdee(${id.id})">
+        ♥ ${id.votes||0}
+      </button>
+    </div>`).join('');
+}
+
+function renderAdminEvents() {
+  const el = document.getElementById('admin-events-list');
+  if (!events.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<h3>Événements (${events.length})</h3>` +
+    events.map(ev => `
+      <div class="admin-event-row">
+        <span class="ae-title">${ev.titre}</span>
+        <span class="ae-date">${fmtDate(ev.date)}</span>
+        <button class="ae-del" onclick="supprimerEvent(${ev.id})">Supprimer</button>
+      </div>`).join('');
+}
+
+function renderAdminIdeas() {
+  const el = document.getElementById('admin-ideas-list');
+  if (!ideas.length) { el.innerHTML = ''; return; }
+  const sorted = [...ideas].sort((a,b)=>(b.votes||0)-(a.votes||0));
+  el.innerHTML = `<h3 style="margin-top:1.5rem">💡 Idées proposées (${ideas.length})</h3>` +
+    sorted.map(id => `
+      <div class="ai-row">
+        <span class="ai-text">${id.text}</span>
+        <span class="ai-by">${id.nom}</span>
+        <span class="ai-votes">♥ ${id.votes||0}</span>
+        <button class="ai-promote" onclick="promouvoir(${id.id})">→ Créer événement</button>
+        <button class="ae-del" onclick="supprimerIdee(${id.id})">✕</button>
+      </div>`).join('');
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────
+function toggleJoin(id) {
+  participations[id] = !participations[id];
+  save(); renderGrid();
+  showToast(participations[id] ? '🎉 Tu es inscrit(e) !' : 'Inscription annulée');
+}
+
+function voteIdee(id) {
+  votes[id] = !votes[id];
+  const idea = ideas.find(i => i.id === id);
+  if (idea) idea.votes = (idea.votes||0) + (votes[id] ? 1 : -1);
+  save(); renderIdeas(); if(isAdmin) renderAdminIdeas();
+  showToast(votes[id] ? '♥ Vote ajouté !' : 'Vote retiré');
+}
+
+function ajouterIdee() {
+  const nom  = document.getElementById('idea-nom').value.trim();
+  const text = document.getElementById('idea-text').value.trim();
+  if (!nom || !text) { showToast('Indique ton prénom et ton idée 😊'); return; }
+  ideas.push({ id: Date.now(), nom, text, votes: 0 });
+  document.getElementById('idea-nom').value = '';
+  document.getElementById('idea-text').value = '';
+  save(); renderIdeas(); if(isAdmin) renderAdminIdeas();
+  showToast('💡 Idée envoyée à la happiness manager !');
+}
+
+function ajouterEvent() {
+  const titre = document.getElementById('af-titre').value.trim();
+  const date  = document.getElementById('af-date').value;
+  if (!titre || !date) { showToast('Titre et date obligatoires'); return; }
+  events.push({
+    id: Date.now(),
+    titre,
+    cat:   document.getElementById('af-cat').value,
+    date,
+    heure: document.getElementById('af-heure').value,
+    lieu:  document.getElementById('af-lieu').value.trim(),
+    desc:  document.getElementById('af-desc').value.trim() || 'À venir !',
+    participants: 0
+  });
+  ['af-titre','af-heure','af-lieu','af-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('af-date').value = '';
+  save(); render();
+  showToast('✅ Événement ajouté !');
+}
+
+function supprimerEvent(id) {
+  if (!confirm('Supprimer cet événement ?')) return;
+  events = events.filter(e => e.id !== id);
+  save(); render();
+  showToast('Événement supprimé');
+}
+
+function supprimerIdee(id) {
+  ideas = ideas.filter(i => i.id !== id);
+  save(); renderIdeas(); renderAdminIdeas();
+  showToast('Idée supprimée');
+}
+
+function promouvoir(id) {
+  const idea = ideas.find(i => i.id === id);
+  if (!idea) return;
+  document.getElementById('af-titre').value = idea.text;
+  document.getElementById('af-cat').value   = 'festif';
+  document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth' });
+  showToast('💡 Idée copiée dans le formulaire — complète et ajoute !');
+}
+
+// ─── FILTER ─────────────────────────────────────────────────
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.ftag').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+// ─── ADMIN ──────────────────────────────────────────────────
+function toggleAdmin() {
+  if (isAdmin) { logoutAdmin(); return; }
+  document.getElementById('modal-bg').classList.add('show');
+  setTimeout(() => document.getElementById('pwd-input').focus(), 100);
+}
+
+function checkPwd() {
+  const val = document.getElementById('pwd-input').value;
+  if (val === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('modal-bg').classList.remove('show');
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-error').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    document.getElementById('admin-toggle').classList.add('active');
+    document.getElementById('admin-toggle').textContent = '⚙ Admin ✓';
+    document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth' });
+    render();
+    showToast('👋 Bienvenue, Happiness Manager !');
+  } else {
+    document.getElementById('pwd-error').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+function logoutAdmin() {
+  isAdmin = false;
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('admin-toggle').classList.remove('active');
+  document.getElementById('admin-toggle').textContent = '⚙ Admin';
+  showToast('Déconnecté du mode admin');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-error').style.display = 'none';
+}
+
+// ─── TOAST ──────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ─── UTILS ──────────────────────────────────────────────────
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T12:00:00');
+  return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
+}
+
+// ─── INIT ────────────────────────────────────────────────────
+load();
+render();
+</script>
+</body>
+</html>
