@@ -298,12 +298,21 @@ async function loadFromAirtable(){
       events = evRecs.map(r=>({
         id: r.id,
         titre: r.fields.Titre||'',
-        cat: (r.fields.Categorie||'festif').toLowerCase().replace('é','e').replace('-','').replace(' ','-'),
+        cat: (()=>{
+        const c = (r.fields.Categorie||'festif').toLowerCase();
+        if(c.includes('festif')) return 'festif';
+        if(c.includes('foodie')) return 'foodie';
+        if(c.includes('bien') || c.includes('tre')) return 'bien-etre';
+        if(c.includes('culture')) return 'culture';
+        if(c.includes('plong')) return 'plongee';
+        if(c.includes('surprise')) return 'surprise';
+        return 'festif';
+      })(),
         date: r.fields.Date||'',
         heure: r.fields.Heure||'',
         lieu: r.fields.Lieu||'',
         desc: r.fields.Description||'',
-        img: r.fields.Photo||'hero',
+        img: r.fields.Photo||'preview.webp',
         participants: 0
       }));
     } else {
@@ -325,7 +334,8 @@ async function loadFromAirtable(){
     // (keep in localStorage for now)
   } catch(e) {
     console.log('Airtable error:', e);
-    events = defaultEvents();
+    toast('Erreur de connexion Airtable');
+    events = [];
   }
   renderAll();
 }
@@ -386,7 +396,9 @@ function renderGrid(){
     const past=new Date(ev.date)<today;
     const joined=parti[ev.id];
     const cnt=(ev.participants||0)+(joined?1:0);
-    const src=IMGS[ev.img]||IMGS.hero;
+    const src = ev.img && ev.img.includes('preview') 
+      ? BASE+'/'+encodeURIComponent(ev.img)
+      : (IMGS[ev.img]||IMGS.hero);
     return `<div class="card ${ev.cat}${past?' past':''}">
       <div class="card-img" style="background-image:url('${src}')">
         <div class="card-img-ov"></div>
@@ -549,6 +561,8 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 function fmtDate(s){if(!s)return'';const d=new Date(s+'T12:00:00');return d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'});}
 
 loadLocal();initHero();
+events = [];
+document.getElementById('grid').innerHTML = '<div class="empty"><div style="font-size:36px;opacity:.3;margin-bottom:10px">⏳</div>Chargement des événements...</div>';
 loadFromAirtable();
 </script>
 </body>
