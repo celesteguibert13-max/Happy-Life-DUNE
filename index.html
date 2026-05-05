@@ -217,6 +217,33 @@ footer{background:var(--navy);color:rgba(255,255,255,.3);text-align:center;paddi
 
 <script>
 const ADMIN_PWD = 'dune2025';
+const AT_TOKEN = 'patkaSB0UZ6NzvhPt.bdb2305c7e69650e6aad512be9dfdcdf3e6ed124c4387f60088498dc56039ed6';
+const AT_BASE  = 'appWWx1lmUfsNvsC9';
+const AT_URL   = 'https://api.airtable.com/v0/';
+
+// Airtable helpers
+async function atGet(table) {
+  const r = await fetch(AT_URL+AT_BASE+'/'+encodeURIComponent(table)+'?maxRecords=200', {
+    headers: { Authorization: 'Bearer '+AT_TOKEN }
+  });
+  const d = await r.json();
+  return d.records || [];
+}
+async function atPost(table, fields) {
+  const r = await fetch(AT_URL+AT_BASE+'/'+encodeURIComponent(table), {
+    method: 'POST',
+    headers: { Authorization: 'Bearer '+AT_TOKEN, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields })
+  });
+  return r.json();
+}
+async function atDelete(table, id) {
+  await fetch(AT_URL+AT_BASE+'/'+encodeURIComponent(table)+'/'+id, {
+    method: 'DELETE',
+    headers: { Authorization: 'Bearer '+AT_TOKEN }
+  });
+}
+
 const BASE = 'https://celesteguibert13-max.github.io/Happy-Life-DUNE';
 const IMGS = {
   hero:     BASE+'/preview.webp',
@@ -253,17 +280,56 @@ const IMG_OPTS = [
   ['karaoke1','Micros karaoké'],['karaoke2','Soirée karaoké'],['yoga1','Yoga vue mer'],['yoga2','Yoga plage']
 ];
 
-let events=[],ideas=[],parti={},votes={},isAdmin=false,filter='tous';
+let events=[],ideas=[],parti={},votes={},isAdmin=false,filter='tous',atParticipations=[];
 
-function save(){try{localStorage.setItem('dw3_ev',JSON.stringify(events));localStorage.setItem('dw3_id',JSON.stringify(ideas));localStorage.setItem('dw3_pa',JSON.stringify(parti));localStorage.setItem('dw3_vo',JSON.stringify(votes));}catch(e){}}
-function load(){
+function saveLocal(){try{localStorage.setItem('dw3_pa',JSON.stringify(parti));localStorage.setItem('dw3_vo',JSON.stringify(votes));}catch(e){}}
+function loadLocal(){
   try{
-    events=JSON.parse(localStorage.getItem('dw3_ev')||'null')||defaultEvents();
-    ideas=JSON.parse(localStorage.getItem('dw3_id')||'[]');
     parti=JSON.parse(localStorage.getItem('dw3_pa')||'{}');
     votes=JSON.parse(localStorage.getItem('dw3_vo')||'{}');
-  }catch(e){events=defaultEvents();ideas=[];parti={};votes={};}
+  }catch(e){parti={};votes={};}
 }
+
+async function loadFromAirtable(){
+  try {
+    // Load events
+    const evRecs = await atGet('Evenements');
+    if(evRecs.length > 0){
+      events = evRecs.map(r=>({
+        id: r.id,
+        titre: r.fields.Titre||'',
+        cat: (r.fields.Categorie||'festif').toLowerCase().replace('é','e').replace('-','').replace(' ','-'),
+        date: r.fields.Date||'',
+        heure: r.fields.Heure||'',
+        lieu: r.fields.Lieu||'',
+        desc: r.fields.Description||'',
+        img: r.fields.Photo||'hero',
+        participants: 0
+      }));
+    } else {
+      events = defaultEvents();
+    }
+    // Load participations
+    const partiRecs = await atGet('Participations');
+    atParticipations = partiRecs.map(r=>({
+      id: r.id,
+      prenom: r.fields.Prénoms||r.fields.Prenoms||'',
+      evenement: r.fields.Evenement||'',
+      date: r.fields.Date||''
+    }));
+    // Count participants per event
+    events.forEach(ev=>{
+      ev.participants = atParticipations.filter(p=>p.evenement===ev.titre).length;
+    });
+    // Load ideas
+    // (keep in localStorage for now)
+  } catch(e) {
+    console.log('Airtable error:', e);
+    events = defaultEvents();
+  }
+  renderAll();
+}
+
 function defaultEvents(){
   const t=new Date(),fmt=d=>d.toISOString().split('T')[0],add=n=>{const d=new Date(t);d.setDate(d.getDate()+n);return fmt(d);};
   return [
@@ -335,7 +401,15 @@ function renderGrid(){
           ${ev.lieu?`<span class="mpill">📍 ${ev.lieu}</span>`:''}
         </div>
         <div class="card-ft">
-          <span class="pcount"><strong>${cnt}</strong> participant${cnt>1?'s':''}</span>
+          <span class="pcount">
+            <strong>${cnt}</strong> participant${cnt>1?'s':''}
+            ${atParticipations.filter(p=>p.evenement===ev.titre).length>0?
+              '<div style="font-size:11px;color:var(--muted);margin-top:3px">'+
+              atParticipations.filter(p=>p.evenement===ev.titre).slice(0,5).map(p=>p.prenom).join(', ')+
+              (atParticipations.filter(p=>p.evenement===ev.titre).length>5?' +'+( atParticipations.filter(p=>p.evenement===ev.titre).length-5)+' autres':'')
+              +'</div>':''
+            }
+          </span>
           ${!past?`<button class="jbtn${joined?' joined':''}" onclick="join(${ev.id})">${joined?'✓ Je viens !':'Je participe'}</button>`:'<span style="font-size:11px;color:var(--light)">Passé</span>'}
         </div>
       </div>
@@ -394,7 +468,35 @@ function renderAdmin(){
     </div>`;
 }
 
-function join(id){parti[id]=!parti[id];save();renderGrid();renderNext();toast(parti[id]?'🎉 Tu es inscrit(e) !':'Inscription annulée');}
+function join(id){
+  const ev = events.find(e=>e.id===id);
+  if(!ev) return;
+  if(parti[id]){
+    // Remove participation
+    parti[id]=false;
+    saveLocal();
+    renderGrid();renderNext();
+    toast('Inscription annulée');
+    return;
+  }
+  // Ask for name
+  const prenom = prompt('Ton prénom pour t'inscrire :');
+  if(!prenom || !prenom.trim()) return;
+  parti[id]=prenom.trim();
+  saveLocal();
+  // Save to Airtable
+  const today = new Date().toLocaleDateString('fr-FR');
+  atPost('Participations',{
+    'Prénoms': prenom.trim(),
+    'Evenement': ev.titre,
+    'Date': today
+  }).then(()=>{
+    ev.participants = (ev.participants||0)+1;
+    renderGrid();renderNext();
+  });
+  toast('🎉 '+prenom.trim()+', tu es inscrit(e) !');
+  renderGrid();renderNext();
+}
 function voteIdea(id){votes[id]=!votes[id];const i=ideas.find(x=>x.id===id);if(i)i.votes=(i.votes||0)+(votes[id]?1:-1);save();renderIdeas();if(isAdmin)renderAdmin();toast(votes[id]?'♥ Vote ajouté !':'Vote retiré');}
 function addIdea(){
   const n=document.getElementById('iname').value.trim(),t=document.getElementById('itext').value.trim();
@@ -403,14 +505,40 @@ function addIdea(){
   document.getElementById('iname').value='';document.getElementById('itext').value='';
   save();renderIdeas();if(isAdmin)renderAdmin();toast('💡 Idée envoyée !');
 }
-function addEvent(){
+async function addEvent(){
   const t=document.getElementById('af-t').value.trim(),d=document.getElementById('af-d').value;
   if(!t||!d){toast('Titre et date obligatoires');return;}
-  events.push({id:Date.now(),titre:t,cat:document.getElementById('af-c').value,date:d,heure:document.getElementById('af-h').value,lieu:document.getElementById('af-l').value.trim(),desc:document.getElementById('af-desc').value.trim()||'À venir !',img:document.getElementById('af-img').value,participants:0});
+  const cat=document.getElementById('af-c').value;
+  const catLabel={'festif':'Festif','foodie':'Foodie','bien-etre':'Bien-être','culture':'Culture','plongee':'Plongée','surprise':'Surprise'};
+  const newEv = {
+    titre:t, cat:cat, date:d,
+    heure:document.getElementById('af-h').value,
+    lieu:document.getElementById('af-l').value.trim(),
+    desc:document.getElementById('af-desc').value.trim()||'À venir !',
+    img:document.getElementById('af-img').value,
+    participants:0
+  };
+  toast('Enregistrement...');
+  const rec = await atPost('Evenements',{
+    'Titre': newEv.titre,
+    'Date': newEv.date,
+    'Heure': newEv.heure,
+    'Lieu': newEv.lieu,
+    'Description': newEv.desc,
+    'Categorie': catLabel[cat]||cat,
+    'Photo': newEv.img
+  });
+  newEv.id = rec.id;
+  events.push(newEv);
   ['af-t','af-d','af-h','af-l','af-desc'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-  save();renderAll();toast('✅ Événement ajouté !');
+  renderAll();toast('✅ Événement ajouté !');
 }
-function delEvent(id){if(!confirm('Supprimer ?'))return;events=events.filter(e=>e.id!==id);save();renderAll();toast('Supprimé');}
+async function delEvent(id){
+  if(!confirm('Supprimer cet événement ?'))return;
+  await atDelete('Evenements', id);
+  events=events.filter(e=>e.id!==id);
+  renderAll();toast('Événement supprimé');
+}
 function delIdea(id){ideas=ideas.filter(i=>i.id!==id);save();renderIdeas();if(isAdmin)renderAdmin();toast('Supprimé');}
 function promote(id){const i=ideas.find(x=>x.id===id);if(!i)return;document.getElementById('af-t').value=i.text;document.getElementById('admin-panel').scrollIntoView({behavior:'smooth'});toast('💡 Idée copiée !');}
 function setFilter(f,btn){filter=f;document.querySelectorAll('.ftag').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderGrid();}
@@ -420,7 +548,8 @@ function closeModal(){document.getElementById('modal-bg').classList.remove('show
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function fmtDate(s){if(!s)return'';const d=new Date(s+'T12:00:00');return d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'});}
 
-load();initHero();renderAll();
+loadLocal();initHero();
+loadFromAirtable();
 </script>
 </body>
 </html>
