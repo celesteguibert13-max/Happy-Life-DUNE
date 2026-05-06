@@ -215,6 +215,23 @@ footer{background:var(--navy);color:rgba(255,255,255,.3);text-align:center;paddi
 </div>
 <div class="toast" id="toast"></div>
 
+<!-- EVENT MODAL -->
+<div id="ev-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(13,33,54,.7);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)" onclick="closeEvModal()">
+  <div id="ev-modal" onclick="event.stopPropagation()" style="background:white;border-radius:18px;max-width:560px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(13,33,54,.18)">
+    <div id="ev-modal-img" style="height:220px;background-size:cover;background-position:center;border-radius:18px 18px 0 0;position:relative">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(13,33,54,.7) 0%,transparent 60%);border-radius:18px 18px 0 0"></div>
+      <span id="ev-modal-cat" style="position:absolute;top:14px;left:14px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;backdrop-filter:blur(6px)"></span>
+      <button onclick="closeEvModal()" style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);border:none;color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div style="padding:1.5rem">
+      <h2 id="ev-modal-titre" style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:600;color:#0d2136;font-style:italic;margin-bottom:10px"></h2>
+      <div id="ev-modal-meta" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px"></div>
+      <p id="ev-modal-desc" style="font-size:14px;color:#5a7080;line-height:1.7;margin-bottom:1.25rem;white-space:pre-line"></p>
+      <div id="ev-modal-footer" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 const ADMIN_PWD = 'dune2025';
 const BASE = 'https://celesteguibert13-max.github.io/Happy-Life-DUNE';
@@ -323,7 +340,7 @@ function renderGrid(){
     const src = ev.img && ev.img.includes('preview')
       ? BASE+'/'+ev.img.replace(/\(/g,'%28').replace(/\)/g,'%29').replace(/ /g,'%20')
       : (IMGS[ev.img]||IMGS.hero);
-    return `<div class="card ${ev.cat}${past?' past':''}">
+    return `<div class="card ${ev.cat}${past?' past':''}" onclick="openEvModal(${ev.id})" style="cursor:pointer">
       <div class="card-img" style="background-image:url('${src}')">
         <div class="card-img-ov"></div>
         <span class="cat-pill">${CAT[ev.cat]}</span>
@@ -394,6 +411,39 @@ function renderAdmin(){
       ${events.length?`<div class="aelist"><h3>Événements (${events.length})</h3>${evRows}</div>`:''}
       ${ideas.length?`<div class="ailist"><h3>Idées proposées (${ideas.length})</h3>${idRows}</div>`:''}
     </div>`;
+}
+
+function openEvModal(id){
+  const ev=events.find(e=>e.id===id);
+  if(!ev) return;
+  const src = ev.img && ev.img.includes('preview')
+    ? BASE+'/'+ev.img.replace(/\(/g,'%28').replace(/\)/g,'%29').replace(/ /g,'%20')
+    : (IMGS[ev.img]||IMGS.hero);
+  document.getElementById('ev-modal-img').style.backgroundImage='url('+src+')';
+  document.getElementById('ev-modal-titre').textContent=ev.titre;
+  document.getElementById('ev-modal-cat').textContent=CAT[ev.cat]||ev.cat;
+  document.getElementById('ev-modal-cat').style.cssText+='background:rgba(255,255,255,.2);color:white';
+  const meta=document.getElementById('ev-modal-meta');
+  meta.innerHTML=[
+    ev.date?'<span style="font-size:12px;background:#f5f0e8;padding:4px 10px;border-radius:20px">📅 '+fmtDate(ev.date)+'</span>':'',
+    ev.heure?'<span style="font-size:12px;background:#f5f0e8;padding:4px 10px;border-radius:20px">🕐 '+ev.heure+'</span>':'',
+    ev.lieu?'<span style="font-size:12px;background:#f5f0e8;padding:4px 10px;border-radius:20px">📍 '+ev.lieu+'</span>':''
+  ].join('');
+  document.getElementById('ev-modal-desc').textContent=ev.desc_longue||ev.desc;
+  const footer=document.getElementById('ev-modal-footer');
+  const joined=parti[ev.id];
+  footer.innerHTML=`
+    <button onclick="join(${ev.id});closeEvModal()" style="padding:10px 22px;border-radius:20px;border:none;background:${joined?'#e8f9f3':'#0d2136'};color:${joined?'#2e9e78':'white'};font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;cursor:pointer">
+      ${joined?'✓ Je viens !':'Je participe'}
+    </button>
+    <button onclick="window.open(gcalUrl(ev),'_blank')" style="padding:10px 18px;border-radius:20px;border:1.5px solid #ddd8ce;background:white;color:#5a7080;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">
+      📅 Ajouter au calendrier
+    </button>`;
+  const bg=document.getElementById('ev-modal-bg');
+  bg.style.display='flex';
+}
+function closeEvModal(){
+  document.getElementById('ev-modal-bg').style.display='none';
 }
 
 function gcalUrl(ev){
@@ -502,6 +552,7 @@ fetch('https://docs.google.com/spreadsheets/d/1XJDV1zCUPSk8aPgCZFCQHvr07t5uxjY0Z
         lieu:c[5]&&c[5].v||'',
         desc:c[6]&&c[6].v||'',
         img:c[7]&&c[7].v||'hero',
+        desc_longue:c[9]&&c[9].v||'',
         participants:parseInt(c[8]&&c[8].v||0)
       };
     });
