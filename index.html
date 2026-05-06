@@ -396,7 +396,41 @@ function renderAdmin(){
     </div>`;
 }
 
-function join(id){parti[id]=!parti[id];save();renderGrid();renderNext();toast(parti[id]?'🎉 Tu es inscrit(e) !':'Inscription annulée');}
+function gcalUrl(ev){
+  const d=ev.date.replace(/-/g,'');
+  const start=d+'T'+(ev.heure||'09:00').replace(':','')+'00';
+  const end=d+'T'+(ev.heure||'09:00').replace(':',''+(parseInt((ev.heure||'09:00').split(':')[1]||0)+60).toString().padStart(2,'0'))+'00';
+  // Simple: add 1 hour
+  const hh=parseInt((ev.heure||'09:00').split(':')[0]);
+  const mm=(ev.heure||'09:00').split(':')[1]||'00';
+  const endH=String(hh+1).padStart(2,'0');
+  const startStr=d+'T'+String(hh).padStart(2,'0')+mm+'00';
+  const endStr=d+'T'+endH+mm+'00';
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+    +'&text='+encodeURIComponent('DUNE World - '+ev.titre)
+    +'&dates='+startStr+'/'+endStr
+    +'&details='+encodeURIComponent(ev.desc)
+    +'&location='+encodeURIComponent(ev.lieu||'DUNE World');
+}
+
+function join(id){
+  const ev=events.find(e=>e.id===id);
+  if(!ev) return;
+  parti[id]=!parti[id];
+  save();
+  renderGrid();
+  renderNext();
+  if(parti[id]){
+    toast('🎉 Tu es inscrit(e) !');
+    setTimeout(()=>{
+      if(confirm('Ajouter "'+ev.titre+'" à ton Google Calendar ?')){
+        window.open(gcalUrl(ev),'_blank');
+      }
+    },400);
+  } else {
+    toast('Inscription annulée');
+  }
+}
 function voteIdea(id){votes[id]=!votes[id];const i=ideas.find(x=>x.id===id);if(i)i.votes=(i.votes||0)+(votes[id]?1:-1);save();renderIdeas();if(isAdmin)renderAdmin();toast(votes[id]?'♥ Vote ajouté !':'Vote retiré');}
 function addIdea(){
   const n=document.getElementById('iname').value.trim(),t=document.getElementById('itext').value.trim();
