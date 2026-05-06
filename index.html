@@ -416,20 +416,30 @@ function gcalUrl(ev){
 function join(id){
   const ev=events.find(e=>e.id===id);
   if(!ev) return;
-  parti[id]=!parti[id];
-  save();
-  renderGrid();
-  renderNext();
   if(parti[id]){
-    toast('🎉 Tu es inscrit(e) !');
-    setTimeout(()=>{
-      if(confirm('Ajouter "'+ev.titre+'" à ton Google Calendar ?')){
-        window.open(gcalUrl(ev),'_blank');
-      }
-    },400);
-  } else {
+    parti[id]=false;
+    save();renderGrid();renderNext();
     toast('Inscription annulée');
+    return;
   }
+  const prenom=prompt('Ton prénom pour t\'inscrire à "'+ev.titre+'" :');
+  if(!prenom||!prenom.trim()) return;
+  parti[id]=prenom.trim();
+  save();renderGrid();renderNext();
+  toast('🎉 '+prenom.trim()+', tu es inscrit(e) !');
+  // Save to Google Sheets
+  fetch('https://script.google.com/macros/s/AKfycbwdFjS16S-MnJi-Nzuq3Fyfh_MOyayipwlnthOfjzIrieAW-i5ZyUlgMFlm7z8UIKFThQ/exec', {
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prenom:prenom.trim(),evenement:ev.titre,date:ev.date,heure:ev.heure})
+  });
+  // Google Calendar
+  setTimeout(()=>{
+    if(confirm('Ajouter "'+ev.titre+'" à ton Google Calendar ?')){
+      window.open(gcalUrl(ev),'_blank');
+    }
+  },400);
 }
 function voteIdea(id){votes[id]=!votes[id];const i=ideas.find(x=>x.id===id);if(i)i.votes=(i.votes||0)+(votes[id]?1:-1);save();renderIdeas();if(isAdmin)renderAdmin();toast(votes[id]?'♥ Vote ajouté !':'Vote retiré');}
 function addIdea(){
