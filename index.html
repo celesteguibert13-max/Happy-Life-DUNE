@@ -422,7 +422,7 @@ function closeModal(){document.getElementById('modal-bg').classList.remove('show
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function fmtDate(s){if(!s)return'';const d=new Date(s+'T12:00:00');return d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'});}
 
-loadLocal();initHero();
+load();initHero();
 document.getElementById('grid').innerHTML='<div class="empty"><div style="font-size:36px;opacity:.3;margin-bottom:10px">⏳</div>Chargement...</div>';
 fetch('https://docs.google.com/spreadsheets/d/1XJDV1zCUPSk8aPgCZFCQHvr07t5uxjY0Z3Pj2DWfElE/gviz/tq?tqx=out:json&sheet=Sheet1')
   .then(r=>r.text())
