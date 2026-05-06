@@ -470,8 +470,25 @@ fetch('https://docs.google.com/spreadsheets/d/1XJDV1zCUPSk8aPgCZFCQHvr07t5uxjY0Z
         id:i+1,
         titre:c[1]&&c[1].v||'',
         cat:cat,
-        date:c[3]&&c[3].v||'',
-        heure:c[4]&&c[4].v||'',
+        date:(()=>{
+        const v=c[3]&&c[3].v||'';
+        if(!v) return '';
+        // Google Sheets returns Date(year,month,day) format
+        if(typeof v==='string' && v.includes('Date(')){
+          const m=v.match(/Date\((\d+),(\d+),(\d+)/);
+          if(m) return m[1]+'-'+String(parseInt(m[2])+1).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+        }
+        return String(v);
+      })(),
+        heure:(()=>{
+        const v=c[4]&&c[4].v||'';
+        if(!v) return '';
+        if(typeof v==='string' && v.includes('Date(')){
+          const m=v.match(/Date\(.*,(\d+),(\d+),(\d+)/);
+          if(m) return String(m[1]).padStart(2,'0')+':'+String(m[2]).padStart(2,'0');
+        }
+        return String(v);
+      })(),
         lieu:c[5]&&c[5].v||'',
         desc:c[6]&&c[6].v||'',
         img:c[7]&&c[7].v||'hero',
