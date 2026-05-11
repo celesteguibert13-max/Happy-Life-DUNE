@@ -478,7 +478,7 @@ function join(id){
   save();renderGrid();renderNext();
   toast('🎉 '+prenom.trim()+', tu es inscrit(e) !');
   // Save to Google Sheets
-const url = 'NOUVELLE_URL_ICI'
+const url = 'https://script.google.com/macros/s/AKfycbzoykTGJIcl27A34NdSaSmFViVDlhVWqJeZ4N9zxA3IMO3_pZEPq8WBMZ-WunG4Ln4m3A/exec'
   + '?prenom=' + encodeURIComponent(prenom.trim())
   + '&evenement=' + encodeURIComponent(ev.titre)
   + '&date=' + encodeURIComponent(ev.date)
