@@ -478,12 +478,12 @@ function join(id){
   save();renderGrid();renderNext();
   toast('🎉 '+prenom.trim()+', tu es inscrit(e) !');
   // Save to Google Sheets
-  fetch('https://script.google.com/macros/s/AKfycbwdFjS16S-MnJi-Nzuq3Fyfh_MOyayipwlnthOfjzIrieAW-i5ZyUlgMFlm7z8UIKFThQ/exec', {
-    method:'POST',
-    mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prenom:prenom.trim(),evenement:ev.titre,date:ev.date,heure:ev.heure})
-  });
+const url = 'NOUVELLE_URL_ICI'
+  + '?prenom=' + encodeURIComponent(prenom.trim())
+  + '&evenement=' + encodeURIComponent(ev.titre)
+  + '&date=' + encodeURIComponent(ev.date)
+  + '&heure=' + encodeURIComponent(ev.heure||'');
+fetch(url, {method:'GET'});
   // Google Calendar
   setTimeout(()=>{
     if(confirm('Ajouter "'+ev.titre+'" à ton Google Calendar ?')){
